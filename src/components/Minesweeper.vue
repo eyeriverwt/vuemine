@@ -1,10 +1,17 @@
 <template>
   <div data-class="minesweeper">
     <h1 data-class="minesweeper-title">
-      マインスイーパ
+      <!-- マインスイーぽ -->マインスイーぽ
     </h1>
 
-    <div data-class="minesweeper-start-buttons">
+    <div data-class="minesweeper-start-buttons" id="ms_start">
+      <template>
+      <button class="start-button" @click="start(9, 9, 10); ms_active=1">
+        {{btnText}} &#x1F6A9;
+      </button>
+      <div >残り{{cntOfBomb}} 個 ({{numOfBomb}})</div>
+      </template>
+      <!--
       <button class="start-button" @click="start(9, 9, 10)">
         🥚初級🥚
       </button>
@@ -14,7 +21,9 @@
       <button class="start-button" @click="start(16, 30, 99)">
         🐓上級🐓
       </button>
+      -->
     </div>
+    
     
     <div style="margin: 1rem 0;"></div>
 
@@ -123,6 +132,19 @@ export default {
        * @type {Number}
        */
       numOfBomb: 0,
+ 
+       /**
+       * 地雷の残りの数.
+       * @type {Number}
+       */
+      cntOfBomb: 0,
+      /**
+       * ボタンテキスト.
+       * @type {String}
+       */
+      btnText: "start",
+
+
     }
   },
 
@@ -136,6 +158,7 @@ export default {
      * @param {Number} maxX 行数.
      * @param {Number} maxY 列数.
      * @param {Number} numOfBomb 地雷の数.
+     * @param {String} btnText ボタンテキスト.
      */
     start(maxX, maxY, numOfBomb) {
       this.started = false;
@@ -143,11 +166,14 @@ export default {
       this.maxX = maxX;
       this.maxY = maxY;
       this.numOfBomb = numOfBomb;
+      this.cntOfBomb = numOfBomb;
+      this.btnText = "restart";
       
       this._clearBoard();
       this._layMines();
 
       this.started = true;
+     
     },
 
     /**
@@ -156,6 +182,10 @@ export default {
      * @param {Number} y 何列目.
      */
     open(x, y) {
+      // 🚩だったら開けない
+      if (this.area[x][y].isMark) {
+        return;
+      }
       // 💣だったら終了
       if (this.area[x][y].isBomb) {
         alert("Bomb!!!");
@@ -196,7 +226,22 @@ export default {
      */
     mark(x, y) {
       if (!this.area[x][y].isOpen) {
-        this.area[x][y].isMark = !this.area[x][y].isMark;
+         // 地雷の最大数以下は処理
+        if(this.numOfBomb >= this.cntOfBomb  &&  this.cntOfBomb >= 0){
+          // 旗の残りをカウント
+          if(this.cntOfBomb == 0 && !this.area[x][y].isMark){
+            this.cntOfBomb = 0;
+            return;
+          }
+
+          this.area[x][y].isMark = !this.area[x][y].isMark;
+
+          if(!this.area[x][y].isMark){
+            this.cntOfBomb = this.cntOfBomb+1;
+          }else{
+            this.cntOfBomb = this.cntOfBomb-1;
+          }
+        }
       }
     },
 
@@ -261,14 +306,22 @@ export default {
 
 <style scoped>
 .start-button {
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  color: #333;
-  text-decoration: none;
-  margin: 2px;
-  width: 8rem;
+    background-color: #f5f5f5;
+    border-radius: 30px;
+    color: #333;
+    text-decoration: none;
+    margin: 2px;
+    width: 150px;
+    border: 1px solid #ddd;
+    padding: 10px;
 }
-
+:focus {
+    outline: -webkit-focus-ring-color auto 0px;
+}
+button.start-button:hover {
+    background: #f6faff;
+    cursor: pointer;
+}
 table.minesweeper-board {
   margin: 0 auto;
 }
@@ -290,5 +343,12 @@ table.minesweeper-board {
 
 .cell--unstarted {
   background-color: #a9a9a9;
+}
+
+.cntbomb {
+  display: none;
+}
+.ms_active {
+  display: block;
 }
 </style>
